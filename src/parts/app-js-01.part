@@ -1,0 +1,50 @@
+const icons = {
+  menu:'☰', search:'⌕', grid:'▦', bell:'●', home:'⌂', tasks:'✓', docs:'▤', customers:'▥', sales:'$', operations:'▦', workflow:'⇢', finance:'◈', reports:'◫', settings:'⚙', chevron:'›', plus:'+', calendar:'□', building:'▥', pin:'⌖', truck:'▰', users:'◎', check:'✓', file:'▤', activity:'↻', close:'×', shield:'◇', clock:'◷'
+};
+
+const state = { active:'home', sidebar:true, role:'Executive', launcher:false, search:false, notifications:false, selectedCustomer:0, query:'' };
+const roles = {
+  Executive:['home','tasks','documents','customers','sales','operations','workflows','finance','reports'],
+  Operations:['home','tasks','documents','customers','operations','workflows','reports'],
+  Sales:['home','tasks','documents','customers','sales'],
+  Accounting:['home','tasks','documents','customers','finance','reports'],
+  Warehouse:['home','tasks','documents','operations']
+};
+const navGroups = [
+  ['My Work',[['home','Home','home'],['tasks','Tasks','tasks'],['documents','Documents','docs']]],
+  ['Revenue',[['customers','Customers','customers'],['sales','Sales & Quotes','sales']]],
+  ['Operations',[['operations','Projects & Fulfillment','operations'],['workflows','Workflow Center','workflow']]],
+  ['Administration',[['finance','Finance & Contracts','finance'],['reports','ScoreCenter','reports']]]
+];
+const customers = [
+  {id:'CUS-1048',name:'Saranac Community Schools',tier:'Championship Partner',health:'Active',rep:'Caleb',address:'225 Pleasant St, Saranac, MI',facilities:[['Saranac Jr/Sr High School','High School',['Main Gym','Auxiliary Gym','Weight Room']],['Saranac Elementary','Elementary School',['Gymnasium','Cafeteria']],['Transportation Center','Operations',['Bus Garage','Office']]]},
+  {id:'CUS-1032',name:'Morrice Area Schools',tier:'Preferred',health:'Active',rep:'Alex',address:'111 E Mason St, Morrice, MI',facilities:[['Morrice High School','High School',['Main Gym','Stage']],['Morrice Elementary','Elementary School',['Gymnasium']]]},
+  {id:'CUS-1019',name:'Mt. Morris Consolidated Schools',tier:'Championship Partner',health:'At Risk',rep:'Caleb',address:'12356 Walter St, Mt Morris, MI',facilities:[['Mt. Morris High School','High School',['Main Gym','Auxiliary Gym']]]}
+];
+let tasks = [
+  ['Review Saranac pay application','ContractOps · Due today','Blaine','High','In Review'],
+  ['Schedule Morrice delivery','FinishLine · Due today','Operations','High','Ready'],
+  ['Approve logo mat proof','MatBuilder Pro · Due tomorrow','Caleb','Normal','Waiting'],
+  ['Confirm crew for Mt. Morris','CrewFlow · Due tomorrow','Justin','Normal','In Progress'],
+  ['Upload signed lien waiver','ContractOps · Due Fri','Accounting','Normal','Blocked']
+];
+const modules = [
+ ['FinishLine','Delivery and proof of completion','Operations','truck'],['CrewFlow','Crew, vehicle and availability planning','Operations','users'],['ContractOps','AIA billing, waivers and contract workflows','Finance','check'],['MatBuilder Pro','Mat measurement, layout and quoting','Specialty','grid'],['Design Vault','Gym design versioning and approvals','Specialty','docs'],['CourtVision','Invite-only court visualization','Specialty','activity'],['FCC Connect','Public profiles, leads and attribution','Revenue','users'],['Price Book','Master costs, pricing and product records','Administration','file']
+];
+const workflows = [
+ ['Quote to Project',['Intake','Build','Rep Review','Customer Approval','Project Created'],2,14],
+ ['Order Fulfillment',['Ordered','Confirmed','Receiving','Staged','Delivered'],3,22],
+ ['AIA Pay Application',['PM Update','Controller Review','Signature','Notary','Submitted'],1,7],
+ ['Logo Mat Approval',['Field Intake','Vendor Estimate','Proof Review','Customer Signoff','Production'],2,4]
+];
+
+function pageTitle(eyebrow,title,copy,actions=''){return `<div class="page-title"><div><span>${eyebrow}</span><h1>${title}</h1><p>${copy}</p></div><div class="page-actions">${actions}</div></div>`}
+function button(label,kind='secondary',action=''){return `<button class="${kind}" ${action}>${label}</button>`}
+function statusClass(s){return s.toLowerCase().replaceAll(' ','-')}
+
+function shell(){
+  const allowed=roles[state.role];
+  const nav=navGroups.map(([g,items])=>{const visible=items.filter(x=>allowed.includes(x[0]));if(!visible.length)return'';return `<div class="nav-group"><div class="nav-label">${g}</div>${visible.map(([id,label,ic])=>`<button data-nav="${id}" class="${state.active===id?'active':''}"><span class="nav-icon">${icons[ic]}</span><span>${label}</span>${id==='tasks'?'<em>8</em>':''}</button>`).join('')}</div>`}).join('');
+  document.getElementById('app').innerHTML=`
+  <header class="topbar">
+    <div class="brand-zone"><button class="icon-btn" id="menuBtn">${icons.menu}</button><div class="brand-mark"><span>FCC</span></div><div class="brand-copy"><strong>FCC Ops</strong><small>The Sports Floor Pros</small></div></div>
