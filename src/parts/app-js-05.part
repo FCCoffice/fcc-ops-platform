@@ -1,0 +1,22 @@
+function searchPalette(){const q=state.query.toLowerCase();let results=[];if(q){customers.forEach((c,i)=>{if(c.name.toLowerCase().includes(q)||c.facilities.some(f=>f[0].toLowerCase().includes(q)))results.push(['Customer',c.name,c.id,`customer:${i}`])});tasks.forEach((t,i)=>{if(t[0].toLowerCase().includes(q))results.push(['Task',t[0],t[1],'tasks'])});modules.forEach(m=>{if(m[0].toLowerCase().includes(q))results.push(['Module',m[0],m[1],'launcher'])})}return `<div class="overlay" id="searchOverlay"><div class="command-palette"><div class="command-input">${icons.search}<input id="searchInput" autofocus value="${state.query}" placeholder="Search FCC Ops…"><kbd>ESC</kbd></div>${!q?`<div class="search-empty"><div class="big-search">${icons.search}</div><h3>Search the entire company</h3><p>Find a customer, facility, project, task, document, employee or module.</p><div class="quick-searches"><button data-query="Saranac">Saranac</button><button data-query="delivery">Delivery</button><button data-query="contract">Contract</button></div></div>`:`<div class="search-results">${results.length?results.slice(0,8).map(r=>`<button data-result="${r[3]}"><span class="result-type">${r[0]}</span><div><strong>${r[1]}</strong><small>${r[2]}</small></div><b>${icons.chevron}</b></button>`).join(''):`<div class="no-results">No results found for “${state.query}”</div>`}</div>`}</div></div>`}
+function notices(){return `<div class="popover notifications-panel"><div class="popover-head"><strong>Notifications</strong><button class="icon-btn" id="closeNotices">${icons.close}</button></div>${[['Approval needed','Saranac pay app is ready for controller review','2 min'],['Delivery ready','Morrice order has been staged','24 min'],['Proof received','Facility Armor uploaded a revised mat proof','1 hr'],['Task overdue','Mt. Morris crew assignment needs attention','3 hrs']].map(n=>`<div class="notice"><span class="notice-dot"></span><div><b>${n[0]}</b><p>${n[1]}</p></div><small>${n[2]}</small></div>`).join('')}<button class="text-button full">View notification center</button></div>`}
+
+function bind(){
+ document.querySelector('#menuBtn').onclick=()=>{state.sidebar=!state.sidebar;shell()};
+ document.querySelector('#launcherBtn').onclick=()=>{state.launcher=true;shell()};
+ document.querySelector('#searchBtn')?.addEventListener('click',()=>{state.search=true;state.query='';shell();setTimeout(()=>document.querySelector('#searchInput')?.focus(),0)});
+ document.querySelector('#noticeBtn').onclick=()=>{state.notifications=!state.notifications;shell()};
+ document.querySelector('#roleSelect').onchange=e=>{state.role=e.target.value;if(!roles[state.role].includes(state.active))state.active='home';shell()};
+ document.querySelectorAll('[data-nav]').forEach(el=>el.onclick=()=>{state.active=el.dataset.nav;shell()});
+ document.querySelectorAll('[data-complete]').forEach(el=>el.onclick=()=>{tasks[+el.dataset.complete][4]='Complete';shell()});
+ document.querySelectorAll('[data-customer]').forEach(el=>el.onclick=()=>{state.selectedCustomer=+el.dataset.customer;shell()});
+ document.querySelector('#closeLauncher')?.addEventListener('click',()=>{state.launcher=false;shell()});
+ document.querySelector('#overlay')?.addEventListener('click',e=>{if(e.target.id==='overlay'){state.launcher=false;shell()}});
+ document.querySelector('#closeNotices')?.addEventListener('click',()=>{state.notifications=false;shell()});
+ const si=document.querySelector('#searchInput'); if(si) si.oninput=e=>{state.query=e.target.value;shell();setTimeout(()=>{const n=document.querySelector('#searchInput');n?.focus();n?.setSelectionRange(n.value.length,n.value.length)},0)};
+ document.querySelector('#searchOverlay')?.addEventListener('click',e=>{if(e.target.id==='searchOverlay'){state.search=false;shell()}});
+ document.querySelectorAll('[data-query]').forEach(el=>el.onclick=()=>{state.query=el.dataset.query;shell()});
+ document.querySelectorAll('[data-result]').forEach(el=>el.onclick=()=>{const r=el.dataset.result;if(r.startsWith('customer:')){state.selectedCustomer=+r.split(':')[1];state.active='customers'}else if(r==='tasks')state.active='tasks';else if(r==='launcher')state.launcher=true;state.search=false;shell()});
+}
+window.addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();state.search=true;state.query='';shell();setTimeout(()=>document.querySelector('#searchInput')?.focus(),0)}if(e.key==='Escape'){state.search=false;state.launcher=false;state.notifications=false;shell()}});
+shell();
