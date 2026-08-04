@@ -1,0 +1,62 @@
+
+// FCC Ops Core v1.1 — persistence, quick-create, theme and workflow controls.
+const savedState = JSON.parse(localStorage.getItem('fccOpsState') || '{}');
+if (savedState.role && roles[savedState.role]) state.role = savedState.role;
+if (savedState.theme) state.theme = savedState.theme;
+if (savedState.tasks && Array.isArray(savedState.tasks)) tasks = savedState.tasks;
+state.quickCreate = null;
+state.toast = '';
+state.unread = Number.isInteger(savedState.unread) ? savedState.unread : 4;
+
+function persistCore(){
+  localStorage.setItem('fccOpsState', JSON.stringify({role:state.role,theme:state.theme || 'light',tasks,unread:state.unread}));
+}
+function showToast(message){state.toast=message;shell();setTimeout(()=>{state.toast='';shell()},2200)}
+function quickCreateModal(){
+  const kind=state.quickCreate || 'task';
+  return `<div class="overlay" id="quickOverlay"><div class="quick-modal">
+    <div class="popover-head"><div><small>QUICK CREATE</small><strong>Add work without leaving your page</strong></div><button class="icon-btn" id="closeQuick">${icons.close}</button></div>
+    <div class="create-tabs"><button data-create-tab="task" class="${kind==='task'?'active':''}">Task</button><button data-create-tab="customer" class="${kind==='customer'?'active':''}">Customer</button><button data-create-tab="facility" class="${kind==='facility'?'active':''}">Facility</button></div>
+    ${kind==='task'?`<form id="taskForm" class="smart-form"><label>Task title<input name="title" required placeholder="What needs to happen?"></label><div class="form-grid"><label>Owner<input name="owner" value="${state.role==='Executive'?'Blaine':state.role}"></label><label>Priority<select name="priority"><option>Normal</option><option>High</option></select></label></div><label>Context<input name="context" placeholder="Customer, project or module"></label><button class="primary" type="submit">Create task</button></form>`:''}
+    ${kind==='customer'?`<form id="customerForm" class="smart-form"><label>Customer name<input name="name" required placeholder="School district or organization"></label><div class="form-grid"><label>Account owner<input name="rep" value="Caleb"></label><label>Relationship<select name="tier"><option>Preferred</option><option>Championship Partner</option><option>Standard</option></select></label></div><label>Primary address<input name="address" placeholder="Street, city, state"></label><button class="primary" type="submit">Create customer</button></form>`:''}
+    ${kind==='facility'?`<form id="facilityForm" class="smart-form"><label>Customer<select name="customer">${customers.map((c,i)=>`<option value="${i}">${c.name}</option>`).join('')}</select></label><label>Facility name<input name="name" required placeholder="High school, elementary or operations center"></label><div class="form-grid"><label>Type<select name="type"><option>High School</option><option>Elementary School</option><option>Operations</option><option>College / University</option></select></label><label>First space<input name="space" placeholder="Main Gym"></label></div><button class="primary" type="submit">Create facility</button></form>`:''}
+  </div></div>`;
+}
+
+const baseBind = bind;
+bind = function(){
+  baseBind();
+  document.querySelector('#themeBtn')?.addEventListener('click',()=>{state.theme=state.theme==='dark'?'light':'dark';persistCore();shell()});
+  document.querySelector('#quickCreateBtn')?.addEventListener('click',()=>{state.quickCreate='task';shell()});
+  document.querySelectorAll('[data-open-create]').forEach(el=>el.addEventListener('click',()=>{state.quickCreate=el.dataset.openCreate || 'task';shell()}));
+  document.querySelector('#closeQuick')?.addEventListener('click',()=>{state.quickCreate=null;shell()});
+  document.querySelector('#quickOverlay')?.addEventListener('click',e=>{if(e.target.id==='quickOverlay'){state.quickCreate=null;shell()}});
+  document.querySelectorAll('[data-create-tab]').forEach(el=>el.addEventListener('click',()=>{state.quickCreate=el.dataset.createTab;shell()}));
+  document.querySelector('#taskForm')?.addEventListener('submit',e=>{e.preventDefault();const f=new FormData(e.currentTarget);tasks.unshift([f.get('title'),`${f.get('context')||'FCC Ops'} · Created now`,f.get('owner'),f.get('priority'),'Ready']);state.quickCreate=null;persistCore();showToast('Task created and added to the shared queue')});
+  document.querySelector('#customerForm')?.addEventListener('submit',e=>{e.preventDefault();const f=new FormData(e.currentTarget);customers.unshift({id:`CUS-${1050+customers.length}`,name:f.get('name'),tier:f.get('tier'),health:'Active',rep:f.get('rep'),address:f.get('address')||'Address not entered',facilities:[]});state.selectedCustomer=0;state.active='customers';state.quickCreate=null;showToast('Customer record created')});
+  document.querySelector('#facilityForm')?.addEventListener('submit',e=>{e.preventDefault();const f=new FormData(e.currentTarget),i=Number(f.get('customer'));customers[i].facilities.push([f.get('name'),f.get('type'),f.get('space')?[f.get('space')]:[]]);state.selectedCustomer=i;state.active='customers';state.quickCreate=null;showToast('Facility added to FacilityDNA')});
+  document.querySelector('#markReadBtn')?.addEventListener('click',()=>{state.unread=0;state.notifications=false;persistCore();showToast('Notifications marked as read')});
+  document.querySelectorAll('[data-advance-workflow]').forEach(el=>el.addEventListener('click',()=>{const i=Number(el.dataset.advanceWorkflow);workflows[i][2]=Math.min(workflows[i][2]+1,workflows[i][1].length-1);showToast(`${workflows[i][0]} advanced to ${workflows[i][1][workflows[i][2]]}`)}));
+  document.querySelector('#roleSelect')?.addEventListener('change',persistCore);
+  document.querySelectorAll('[data-complete]').forEach(el=>el.addEventListener('click',persistCore));
+};
+
+const baseShell = shell;
+shell = function(){
+  baseShell();
+  document.documentElement.dataset.theme=state.theme || 'light';
+  const actions=document.querySelector('.top-actions');
+  if(actions){
+    const theme=document.createElement('button');theme.id='themeBtn';theme.className='icon-btn theme-button';theme.title='Toggle light or dark mode';theme.textContent=state.theme==='dark'?'☀':'◐';actions.insertBefore(theme,actions.firstChild);
+  }
+  const pageActions=document.querySelector('.page-actions');
+  if(pageActions && !document.querySelector('#quickCreateBtn')){const b=document.createElement('button');b.id='quickCreateBtn';b.className='primary quick-create';b.innerHTML=`${icons.plus} Create`;pageActions.appendChild(b)}
+  const noticeBadge=document.querySelector('.notification-button i');if(noticeBadge){noticeBadge.textContent=state.unread;noticeBadge.style.display=state.unread?'grid':'none'}
+  const noticePanel=document.querySelector('.notifications-panel');if(noticePanel){const b=document.createElement('button');b.id='markReadBtn';b.className='text-button full';b.textContent='Mark all as read';noticePanel.appendChild(b)}
+  if(state.active==='workflows') document.querySelectorAll('.workflow-board, .workflow-card, .panel').forEach((card,i)=>{if(i<workflows.length && !card.querySelector('[data-advance-workflow]')){const b=document.createElement('button');b.className='secondary advance-workflow';b.dataset.advanceWorkflow=i;b.textContent=`Advance to ${workflows[i][1][Math.min(workflows[i][2]+1,workflows[i][1].length-1)]}`;card.appendChild(b)}});
+  if(state.quickCreate) document.body.insertAdjacentHTML('beforeend',quickCreateModal());
+  if(state.toast) document.body.insertAdjacentHTML('beforeend',`<div class="toast"><span>${icons.check}</span>${state.toast}</div>`);
+  bind();
+};
+
+shell();
