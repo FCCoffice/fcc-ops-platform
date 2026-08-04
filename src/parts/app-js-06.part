@@ -23,9 +23,7 @@ function quickCreateModal(){
   </div></div>`;
 }
 
-const baseBind = bind;
-bind = function(){
-  baseBind();
+function bindEnhancements(){
   document.querySelector('#themeBtn')?.addEventListener('click',()=>{state.theme=state.theme==='dark'?'light':'dark';persistCore();shell()});
   document.querySelector('#quickCreateBtn')?.addEventListener('click',()=>{state.quickCreate='task';shell()});
   document.querySelectorAll('[data-open-create]').forEach(el=>el.addEventListener('click',()=>{state.quickCreate=el.dataset.openCreate || 'task';shell()}));
@@ -39,7 +37,10 @@ bind = function(){
   document.querySelectorAll('[data-advance-workflow]').forEach(el=>el.addEventListener('click',()=>{const i=Number(el.dataset.advanceWorkflow);workflows[i][2]=Math.min(workflows[i][2]+1,workflows[i][1].length-1);showToast(`${workflows[i][0]} advanced to ${workflows[i][1][workflows[i][2]]}`)}));
   document.querySelector('#roleSelect')?.addEventListener('change',persistCore);
   document.querySelectorAll('[data-complete]').forEach(el=>el.addEventListener('click',persistCore));
-};
+}
+
+const baseBind = bind;
+bind = function(){baseBind();bindEnhancements();};
 
 const baseShell = shell;
 shell = function(){
@@ -56,7 +57,7 @@ shell = function(){
   if(state.active==='workflows') document.querySelectorAll('.workflow-board, .workflow-card, .panel').forEach((card,i)=>{if(i<workflows.length && !card.querySelector('[data-advance-workflow]')){const b=document.createElement('button');b.className='secondary advance-workflow';b.dataset.advanceWorkflow=i;b.textContent=`Advance to ${workflows[i][1][Math.min(workflows[i][2]+1,workflows[i][1].length-1)]}`;card.appendChild(b)}});
   if(state.quickCreate) document.body.insertAdjacentHTML('beforeend',quickCreateModal());
   if(state.toast) document.body.insertAdjacentHTML('beforeend',`<div class="toast"><span>${icons.check}</span>${state.toast}</div>`);
-  bind();
+  bindEnhancements();
 };
 
 shell();
