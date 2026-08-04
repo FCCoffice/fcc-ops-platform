@@ -9,7 +9,7 @@ writeFileSync('app.js', app);
 
 rmSync('dist', { recursive: true, force: true });
 mkdirSync('dist', { recursive: true });
-for (const file of ['index.html', 'app.js', 'styles.css']) {
+for (const file of ['index.html', 'app.js', 'styles.css', 'core-v11.css']) {
   cpSync(file, `dist/${file}`);
 }
 console.log('FCC Ops production build created in dist/');
