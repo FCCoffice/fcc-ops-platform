@@ -2,7 +2,8 @@ import React,{useEffect,useState} from 'react';
 import {Activity,Bell,Building2,Check,FileCheck2,Gauge,HardHat,Home,Layers3,Loader2,LogOut,Menu,Moon,PackageCheck,Plus,Search,Settings,ShieldCheck,ShoppingCart,Sun,X} from 'lucide-react';
 import * as api from './data/api';
 import {AREAS,EMPTY,SUB} from './data/constants';
-import {cx,Modal} from './components/ui';
+import {cx} from './components/ui';
+import SectionHomeHero from './components/SectionHomeHero';
 import {WorkScreen,CustomerScreen,SalesScreen,ProjectScreen,FulfillmentScreen,FieldScreen,ContractScreen,ReportScreen,AdminScreen} from './screens/index';
 import {FormRouter,SearchModal,NotificationModal,CreateMenu} from './screens/modals';
 import ApprovalPage from './screens/ApprovalPage';
@@ -30,10 +31,11 @@ export default function FccOpsApp(){
  if(api.configured()&&!session)return <Auth/>;
  const props={data,selected,setSelected,setModal,run,go,session};
  const screens={work:WorkScreen,customers:CustomerScreen,sales:SalesScreen,projects:ProjectScreen,fulfillment:FulfillmentScreen,field:FieldScreen,contracts:ContractScreen,reports:ReportScreen,admin:AdminScreen};const Screen=screens[area];
+ const isSectionHome=sub===SUB[area][0];
  return <div className={cx('fcc-shell',theme==='dark'&&'dark')}>
   <header className="top-command"><div className="brand"><button className="icon-btn" onClick={()=>setRail(!rail)}><Menu/></button><b>FCC</b><div><strong>FCC Ops</strong><small>The Sports Floor Pros</small></div></div><nav className="major-nav">{AREAS.map(([id,label])=>{const I=ICONS[id];return <button key={id} className={area===id?'active':''} onClick={()=>setArea(id)}><I/><span>{label}</span></button>})}</nav><div className="utilities"><button className="search-trigger" onClick={()=>setModal({type:'search'})}><Search/><span>Search FCC Ops</span><kbd>Ctrl K</kbd></button><button className="icon-btn" onClick={()=>setTheme(theme==='light'?'dark':'light')}>{theme==='light'?<Moon/>:<Sun/>}</button><button className="icon-btn badge-btn" onClick={()=>setModal({type:'notifications'})}><Bell/><i>{data.notifications.filter(n=>!n.read_at).length}</i></button><button className="primary compact" onClick={()=>setModal({type:'create-menu'})}><Plus/>Create</button><div className="profile"><ShieldCheck/><span>{session?.user?.email||'Development'}</span><button className="profile-signout" title="Sign out" onClick={()=>api.signOut()}><LogOut/></button></div></div></header>
   <aside className={cx('context-nav',!rail&&'hidden')}><div className="context-title"><small>{AREAS.find(x=>x[0]===area)?.[1]}</small><strong>{sub}</strong></div><nav>{SUB[area].map(x=><button key={x} className={sub===x?'active':''} onClick={()=>setSub(x)}><span>{x}</span></button>)}</nav><footer><Activity/><div><small>Production data</small><strong>{loading?'Synchronizing':'Connected'}</strong></div></footer></aside>
-  <main className={cx('workspace',!rail&&'wide')}>{error&&<div className="error-banner"><span>{error}</span><button onClick={()=>setError('')}><X/></button></div>}{loading&&<div className="loading-line"><Loader2 className="spin"/>Synchronizing FCC Ops</div>}<Screen view={sub} {...props}/></main>
+  <main className={cx('workspace',!rail&&'wide')}>{error&&<div className="error-banner"><span>{error}</span><button onClick={()=>setError('')}><X/></button></div>}{loading&&<div className="loading-line"><Loader2 className="spin"/>Synchronizing FCC Ops</div>}{isSectionHome&&<SectionHomeHero area={area} data={data} onCreate={()=>setModal({type:'create-menu'})}/>}<Screen view={sub} {...props}/></main>
   {modal?.type==='search'&&<SearchModal close={()=>setModal(null)} go={go}/>} {modal?.type==='notifications'&&<NotificationModal close={()=>setModal(null)} {...props}/>} {modal?.type==='create-menu'&&<CreateMenu close={()=>setModal(null)} open={type=>setModal({type})}/>} {modal&&!['search','notifications','create-menu'].includes(modal.type)&&<FormRouter modal={modal} close={()=>setModal(null)} {...props}/>} {toast&&<div className="toast"><Check/>{toast}</div>}
  </div>
 }
