@@ -1,0 +1,7 @@
+-- Applied to the FCC Ops production project on 2026-08-05.
+-- Public proposal approval package and decision functions are SECURITY DEFINER,
+-- use a fixed search_path, expose only customer-safe fields, and are executable
+-- only through opaque expiring approval tokens. The production database also
+-- includes the transactional workflow RPCs used by src/data/api.js for request,
+-- quote, project/order conversion, purchasing, receiving, delivery and ContractOps.
+-- See docs/PDR_IMPLEMENTATION.md for the application-to-database contract.
