@@ -1,7 +1,7 @@
-import React,{useEffect,useMemo,useState} from 'react';
-import {Activity,Bell,Building2,CalendarDays,Check,ChevronDown,FileCheck2,FileText,Gauge,HardHat,Home,Layers3,Loader2,LogOut,Menu,Moon,MoreHorizontal,PackageCheck,Plus,Search,Settings,ShieldCheck,ShoppingCart,Sun,Users,Warehouse,X} from 'lucide-react';
+import React,{useEffect,useState} from 'react';
+import {Activity,Bell,Building2,CalendarDays,Check,ChevronDown,FileCheck2,FileText,Gauge,HardHat,Home,Layers3,Loader2,Menu,Moon,MoreHorizontal,PackageCheck,Plus,Search,ShieldCheck,ShoppingCart,Sun,Users,Warehouse,X} from 'lucide-react';
 import * as api from './data/api';
-import {AREAS,EMPTY,SUB} from './data/constants';
+import {EMPTY,SUB} from './data/constants';
 import {cx} from './components/ui';
 import SectionHomeHero from './components/SectionHomeHero';
 import {WorkScreen,CustomerScreen,SalesScreen,ProjectScreen,FulfillmentScreen,FieldScreen,ContractScreen,ReportScreen,AdminScreen} from './screens/index';
@@ -19,7 +19,6 @@ const TOP_NAV=[
  {id:'reports',label:'Reports',Icon:Gauge,area:'reports',sub:'ScoreCenter',menu:[['Dashboards','reports','ScoreCenter'],['Reports Library','reports','Operational Health'],['Analytics','reports','Pipeline']]},
  {id:'more',label:'More',Icon:MoreHorizontal,area:'admin',sub:'Price Book',menu:[['Customers & Facilities','customers','Customer Directory'],['Contracts & Billing','contracts','Contract Portfolio'],['Platform Administration','admin','Price Book']]}
 ];
-
 const CONTEXT_TITLES={work:'HOME',customers:'CUSTOMERS',sales:'OPPORTUNITIES',projects:'PROJECTS',fulfillment:'ORDERS & FULFILLMENT',field:'SCHEDULE & FIELD',contracts:'CONTRACTS',reports:'REPORTS',admin:'MORE'};
 const CONTEXT_LABELS={
  work:{Mine:'My Work','My Team':'My Team','Due Today':'Due Today',Overdue:'Overdue',Approvals:'Approvals',Waiting:'Waiting',Exceptions:'Exceptions',Completed:'Completed'},
@@ -56,25 +55,16 @@ export default function FccOpsApp(){
  if(boot)return <div className="full-loader"><Loader2 className="spin"/><h2>Opening FCC Ops</h2></div>;
  if(api.configured()&&!session)return <Auth/>;
  const props={data,selected,setSelected,setModal,run,go,session};
- const screens={work:WorkScreen,customers:CustomerScreen,sales:SalesScreen,projects:ProjectScreen,fulfillment:FulfillmentScreen,field:FieldScreen,contracts:ContractScreen,reports:ReportScreen,admin:AdminScreen};const Screen=screens[area];
+ const screens={work:WorkScreen,customers:CustomerScreen,sales:SalesScreen,projects:ProjectScreen,fulfillment:FulfillmentScreen,field:FieldScreen,contracts:ContractScreen,reports:ReportScreen,admin:AdminScreen};
+ const Screen=screens[area];
  const isSectionHome=sub===SUB[area][0];
- const activeTop=useMemo(()=>{
-   const exact=TOP_NAV.find(item=>item.area===area&&item.sub===sub);
-   if(exact)return exact.id;
-   if(area==='sales')return sub==='Quote Playbook'||sub==='Proposal Review'?'quotes':'opportunities';
-   if(area==='fulfillment')return sub==='Warehouse'?'inventory':'orders';
-   if(area==='field'||(area==='projects'&&sub==='Schedule'))return 'schedule';
-   if(area==='reports')return 'reports';
-   if(area==='projects')return 'projects';
-   if(area==='work')return 'home';
-   return 'more';
- },[area,sub]);
+ const exact=TOP_NAV.find(item=>item.area===area&&item.sub===sub);
+ let activeTop=exact?.id;
+ if(!activeTop){if(area==='sales')activeTop=sub==='Quote Playbook'||sub==='Proposal Review'?'quotes':'opportunities';else if(area==='fulfillment')activeTop=sub==='Warehouse'?'inventory':'orders';else if(area==='field'||(area==='projects'&&sub==='Schedule'))activeTop='schedule';else if(area==='reports')activeTop='reports';else if(area==='projects')activeTop='projects';else if(area==='work')activeTop='home';else activeTop='more'}
  return <div className={cx('fcc-shell',theme==='dark'&&'dark')}>
   <header className="top-command reference-header">
    <button className="mobile-menu icon-btn" onClick={()=>setRail(!rail)}><Menu/></button>
-   <button className="brand reference-brand" onClick={()=>navigate('work','Mine')}>
-    <span className="fcc-wordmark">FCC</span><span className="ops-wordmark">OPS</span><small>POWERED BY FACILITYDNA™</small>
-   </button>
+   <button className="brand reference-brand" onClick={()=>navigate('work','Mine')}><span className="fcc-wordmark">FCC</span><span className="ops-wordmark">OPS</span><small>POWERED BY FACILITYDNA™</small></button>
    <nav className="major-nav reference-nav">{TOP_NAV.map(item=>{const I=item.Icon;return <button key={item.id} className={activeTop===item.id?'active':''} onClick={()=>item.menu?setNavMenu(navMenu===item.id?null:item.id):navigate(item.area,item.sub)}><I/><span>{item.label}</span>{item.menu&&<ChevronDown className="nav-caret"/>}</button>})}</nav>
    <div className="utilities reference-utilities"><button className="icon-btn header-search" onClick={()=>setModal({type:'search'})}><Search/></button><button className="icon-btn" onClick={()=>setTheme(theme==='light'?'dark':'light')}>{theme==='light'?<Moon/>:<Sun/>}</button><button className="icon-btn badge-btn" onClick={()=>setModal({type:'notifications'})}><Bell/><i>{data.notifications.filter(n=>!n.read_at).length}</i></button><button className="primary compact" onClick={()=>setModal({type:'create-menu'})}><Plus/>Create</button><button className="profile reference-profile"><span className="profile-photo">BN</span><span className="profile-copy"><strong>Blaine Naessens</strong><small>Operations Manager</small></span><ChevronDown/></button></div>
   </header>
