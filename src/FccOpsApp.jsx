@@ -1,5 +1,5 @@
 import React,{useEffect,useState} from 'react';
-import {Activity,Bell,Building2,CalendarDays,Check,ChevronDown,FileCheck2,FileText,Gauge,HardHat,Home,Layers3,Loader2,Menu,MoreHorizontal,PackageCheck,Search,ShoppingCart,Users,Warehouse,X} from 'lucide-react';
+import {Activity,BarChart3,Bell,Building2,CalendarDays,Check,CheckCircle2,ChevronDown,FileCheck2,FileText,Gauge,HardHat,Home,Layers3,Loader2,MapPin,Menu,MoreHorizontal,PackageCheck,Search,ShoppingCart,Users,Warehouse,X} from 'lucide-react';
 import * as api from './data/api';
 import {EMPTY,SUB} from './data/constants';
 import {cx} from './components/ui';
@@ -31,6 +31,18 @@ const CONTEXT_LABELS={
  reports:{ScoreCenter:'Dashboards',Pipeline:'Pipeline','Operational Health':'Operational Health','Contract Health':'Contract Health',Exceptions:'Exceptions'},
  admin:{'Price Book':'Price Book',Vendors:'Vendors','Users & Roles':'Users & Roles','Workflow Builder':'Workflow Builder',Templates:'Templates',Documents:'Documents',Audit:'Audit'}
 };
+const CONTEXT_ICONS={
+ work:{Mine:Home,'My Team':Users,'Due Today':CalendarDays,Overdue:Activity,Approvals:CheckCircle2,Waiting:Activity,Exceptions:Activity,Completed:CheckCircle2},
+ customers:{'Customer Directory':Building2,'Facility Directory':MapPin,'Review Queue':CheckCircle2,Contacts:Users,Documents:FileText},
+ sales:{'Sales Requests':Users,'Estimating Queue':ShoppingCart,'Quote Playbook':FileText,'Proposal Review':CheckCircle2,'MatBuilder Pro':Layers3,'FCC Connect':Activity},
+ projects:{'Project Portfolio':CalendarDays,'Design & Approval':Users,Schedule:MapPin,'Crew Requirements':FileText,Closeout:CheckCircle2},
+ fulfillment:{OrderDNA:PackageCheck,Purchasing:ShoppingCart,Receiving:CheckCircle2,Warehouse:Warehouse,'Staging & Loading':PackageCheck,'FinishLine Delivery':CheckCircle2},
+ field:{Today:CalendarDays,'CrewFlow Planner':Users,Availability:CheckCircle2,'Time Off':CalendarDays,'Proof & Forms':FileText,'Safety & Incidents':HardHat},
+ contracts:{'Contract Portfolio':FileCheck2,'SOV & Pay Apps':FileText,Compliance:CheckCircle2,Waivers:FileText,Payments:CheckCircle2},
+ reports:{ScoreCenter:Gauge,Pipeline:BarChart3,'Operational Health':Activity,'Contract Health':FileCheck2,Exceptions:Activity},
+ admin:{'Price Book':FileText,Vendors:Building2,'Users & Roles':Users,'Workflow Builder':Activity,Templates:FileText,Documents:FileText,Audit:CheckCircle2}
+};
+const MENU_ICONS={'All Opportunities':Users,'My Opportunities':Users,'Opportunity Pipeline':BarChart3,'Crew Calendar':CalendarDays,'Project Schedule':FileCheck2,'Time Off & Availability':Users,Dashboards:Gauge,'Reports Library':FileText,Analytics:BarChart3,'Customers & Facilities':Building2,'Contracts & Billing':FileCheck2,'Platform Administration':Gauge};
 
 export default function FccOpsApp(){
  const [session,setSession]=useState(null),[boot,setBoot]=useState(api.configured()),[loading,setLoading]=useState(false);
@@ -68,9 +80,9 @@ export default function FccOpsApp(){
    <nav className="major-nav reference-nav exact-reference-nav">{TOP_NAV.map(item=>{const I=item.Icon;return <button key={item.id} className={activeTop===item.id?'active':''} onClick={()=>item.menu?setNavMenu(navMenu===item.id?null:item.id):navigate(item.area,item.sub)}><I/><span>{item.label}</span></button>})}</nav>
    <div className="utilities reference-utilities exact-reference-utilities"><button className="icon-btn header-search" aria-label="Search" onClick={()=>setModal({type:'search'})}><Search/></button><button className="icon-btn badge-btn" aria-label="Notifications" onClick={()=>setModal({type:'notifications'})}><Bell/><i>{unread}</i></button><button className="profile reference-profile exact-reference-profile"><span className="profile-photo exact-reference-photo"><img src="/assets/fcc-reference-avatar.webp" alt="Blaine Naessens"/></span><span className="profile-copy"><strong>Blaine Naessens</strong><small>Operations Manager</small></span><ChevronDown/></button></div>
   </header>
-  {navMenu&&<div className="nav-dropdown-shell exact-dropdown-shell" onClick={()=>setNavMenu(null)}><div className={cx('nav-dropdown',`nav-dropdown-${navMenu}`)} onClick={e=>e.stopPropagation()}>{TOP_NAV.find(x=>x.id===navMenu)?.menu?.map(([label,nextArea,nextSub])=><button key={label} onClick={()=>navigate(nextArea,nextSub)}><span>{label}</span></button>)}</div></div>}
-  <aside className={cx('context-nav reference-context exact-reference-context',!rail&&'hidden')}><div className="context-title"><small>{CONTEXT_TITLES[area]}</small></div><nav>{SUB[area].map(x=><button key={x} className={sub===x?'active':''} onClick={()=>setSub(x)}><span>{CONTEXT_LABELS[area]?.[x]||x}</span></button>)}</nav><footer><Activity/><div><small>FCC Ops status</small><strong>{loading?'Synchronizing':'Connected'}</strong></div></footer></aside>
-  <main className={cx('workspace reference-workspace exact-reference-workspace',!rail&&'wide')}>{error&&<div className="error-banner"><span>{error}</span><button onClick={()=>setError('')}><X/></button></div>}{loading&&<div className="loading-line"><Loader2 className="spin"/>Synchronizing FCC Ops</div>}{isSectionHome?<SectionHomeHero area={area} data={data} onCreate={()=>setModal({type:'create-menu'})} onNavigate={(nextArea,nextSub)=>navigate(nextArea||area,nextSub)}/>:<Screen view={sub} {...props}/>}</main>
+  {navMenu&&<div className="nav-dropdown-shell exact-dropdown-shell" onClick={()=>setNavMenu(null)}><div className={cx('nav-dropdown',`nav-dropdown-${navMenu}`)} onClick={e=>e.stopPropagation()}>{TOP_NAV.find(x=>x.id===navMenu)?.menu?.map(([label,nextArea,nextSub])=>{const I=MENU_ICONS[label]||FileText;return <button key={label} onClick={()=>navigate(nextArea,nextSub)}><I/><span>{label}</span></button>})}</div></div>}
+  <aside className={cx('context-nav reference-context exact-reference-context',!rail&&'hidden')}><div className="context-title"><small>{CONTEXT_TITLES[area]}</small></div><nav>{SUB[area].map(x=>{const I=CONTEXT_ICONS[area]?.[x]||FileText;return <button key={x} className={sub===x?'active':''} onClick={()=>setSub(x)}><I/><span>{CONTEXT_LABELS[area]?.[x]||x}</span></button>})}</nav><footer><Activity/><div><small>FCC Ops status</small><strong>{loading?'Synchronizing':'Connected'}</strong></div></footer></aside>
+  <main className={cx('workspace reference-workspace exact-reference-workspace',!rail&&'wide',isSectionHome&&'section-home-mode')}>{error&&<div className="error-banner"><span>{error}</span><button onClick={()=>setError('')}><X/></button></div>}{loading&&<div className="loading-line"><Loader2 className="spin"/>Synchronizing FCC Ops</div>}{isSectionHome?<SectionHomeHero area={area} data={data} onCreate={()=>setModal({type:'create-menu'})} onNavigate={(nextArea,nextSub)=>navigate(nextArea||area,nextSub)}/>:<Screen view={sub} {...props}/>}</main>
   {modal?.type==='search'&&<SearchModal close={()=>setModal(null)} go={go}/>} {modal?.type==='notifications'&&<NotificationModal close={()=>setModal(null)} {...props}/>} {modal?.type==='create-menu'&&<CreateMenu close={()=>setModal(null)} open={type=>setModal({type})}/>} {modal&&!['search','notifications','create-menu'].includes(modal.type)&&<FormRouter modal={modal} close={()=>setModal(null)} {...props}/>} {toast&&<div className="toast"><Check/>{toast}</div>}
  </div>
 }
