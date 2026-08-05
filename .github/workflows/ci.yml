@@ -1,13 +1,11 @@
-name: FCC Ops CI
-
+name: FCC Ops Release Gate
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
-
 jobs:
-  build:
+  validate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -15,5 +13,6 @@ jobs:
         with:
           node-version: 20
           cache: npm
-      - run: npm install
+      - run: npm install --no-audit --no-fund
+      - run: npm run check
       - run: npm run build

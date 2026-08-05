@@ -1,38 +1,26 @@
-# FCC Ops Platform Core
+# FCC Ops
 
-A Netlify-ready prototype for the unified Floor Care Concepts operating platform.
+Production operating system for Floor Care Concepts / The Sports Floor Pros.
 
-## Included in this build
+## Connected lifecycle
 
-- Universal FCC Ops shell
-- Role-based navigation and homepage
-- Simulated single-login role/permission switching
-- Customer, facility and space records (FacilityDNA foundation)
-- Global command search
-- Shared tasks and notifications
-- Shared document vault and activity timeline
-- Standard module navigation
-- Module launcher for specialty tools
-- Shared workflow/status engine
-- Responsive desktop/mobile layouts
+Customer and FacilityDNA → Sales Request → Quote Playbook → Proposal approval → Project and OrderDNA → Purchasing → Receiving → Warehouse and staging → FinishLine delivery / field proof → ContractOps and accounting readiness.
 
-## Run locally
+## Local setup
 
 ```bash
+cp .env.example .env
 npm install
-npm start
+npm run dev
 ```
 
-## Production build
+Required variables:
 
-```bash
-npm run build
-```
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_PUBLISHABLE_KEY`
 
-## Deploy to Netlify
+## Release gate
 
-The repository includes `netlify.toml`. Connect the repository in Netlify and use the detected build settings. Netlify will run `npm run build` and publish the generated `dist` folder.
+`npm run check && npm run build`
 
-## Current status
-
-This is a functional front-end platform prototype using realistic sample data and client-side state. Production use should add authentication, permanent database storage, file storage, audit logging, API integrations and row-level permissions.
+The application is deployed by Netlify from `main`. Database functions, row-level security and storage are maintained in the dedicated FCC Ops Supabase project.
